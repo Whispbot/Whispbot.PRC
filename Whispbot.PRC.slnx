@@ -1,0 +1,4 @@
+<Solution>
+  <Project Path="../Whispbot.PRC.Tester/Whispbot.PRC.Tester.csproj" Id="b2d64c8c-25fb-4f93-aa62-556e568c311b" />
+  <Project Path="Whispbot.PRC.csproj" />
+</Solution>
