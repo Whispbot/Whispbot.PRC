@@ -75,9 +75,12 @@ namespace Whispbot.PRC.Messages
                                     data = data
                                 };
 
-                                await Cache.SetCache(message, response);
-
+                                // This should happen before SetCache because 'cached'
+                                // relies on cachedAtMs which is set by SetCache and messes
+                                // up observability (monitors that use not cached requests)
                                 entry.RecordEnd(message, response);
+
+                                await Cache.SetCache(message, response);
 
                                 OnRequestFinish.Handle(message, response);
 
