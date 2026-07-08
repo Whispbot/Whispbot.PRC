@@ -6,9 +6,10 @@ using Whispbot.PRC;
 using Whispbot.PRC.Databases;
 using Whispbot.PRC.Messages;
 using Whispbot.PRC.PRC;
+using Whispbot.PRC.Updates;
 using YellowMacaroni.Redis.Queue;
 
-Thread.CurrentThread.Name = "Main";
+Logger.Context = "Main";
 Logger.Initialize();
 
 Log.Information("Starting...");
@@ -32,7 +33,6 @@ API.Init();
 var client = new QueueClient($"{host}:{port},password={password},abortConnect=false");
 Log.Information("Created queue client");
 
-
 CancellationTokenSource cts = new();
 void OnExit(string reason = "")
 {
@@ -51,6 +51,8 @@ for (int i = 1; i <= workers; i++)
 {
     Runner.Run(client, i, cts);
 }
+
+if (!isDev) QueueUpdates.Init(client, cts);
 
 await Task.Delay(Timeout.Infinite, cts.Token).ContinueWith(_ => {});
 await Task.Delay(5000); // Wait for any remaining stuffs to finish

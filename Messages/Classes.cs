@@ -1,8 +1,10 @@
 ﻿using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
 using System.Text;
 using Whispbot.PRC.PRC;
+using Whispbot.PRC.PRC.Classes;
 
 namespace Whispbot.PRC.Messages
 {
@@ -37,6 +39,50 @@ namespace Whispbot.PRC.Messages
         public ErrorCode error = ErrorCode.Nothing;
         public string? error_message = "Something went wrong...";
         public object? data = null!;
+
+        public ERLCServer? Server => ConvertResponseTo<ERLCServer>(this);
+
+        public static T? ConvertResponseTo<T>(PRCResponse response) where T : class
+        {
+            var data = response.data;
+            if (data is null) return null;
+
+            if (data is T t) return t;
+
+            if (data is JToken token)
+            {
+                try
+                {
+                    return token.ToObject<T>();
+                }
+                catch
+                {
+                    return null;
+                }
+            }
+
+            if (data is string s)
+            {
+                try
+                {
+                    return JsonConvert.DeserializeObject<T>(s);
+                }
+                catch
+                {
+                    return null;
+                }
+            }
+
+            try
+            {
+                var serialized = JsonConvert.SerializeObject(data);
+                return JsonConvert.DeserializeObject<T>(serialized);
+            }
+            catch
+            {
+                return null;
+            }
+        }
     }
 
     public class PRCError

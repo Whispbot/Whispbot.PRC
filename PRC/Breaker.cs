@@ -33,7 +33,7 @@ namespace Whispbot.PRC.PRC
         public static double CurrentWindowErrorRate => requestsCurrentWindow == 0 ? 0 : (double)errorsCurrentWindow / requestsCurrentWindow;
         public static double AverageErrorRate => (CurrentWindowErrorRate * WindowProgress) + (LastWindowErrorRate * (1 - WindowProgress));
 
-        private static Random _random = new();
+        private static readonly Random _random = new();
 
         // 0.32 < (0.1 / 0.3) = 0.333 | 0.32 < (0.1 / 0.8) = 0.125
         public static bool IsOpen => AverageErrorRate < ERROR_RATE_THRESHOLD || (_random.NextDouble() < Math.Min(CHANCE_TO_RANDOM_REQUEST / AverageErrorRate, 1));
@@ -50,8 +50,6 @@ namespace Whispbot.PRC.PRC
             requestsCurrentWindow = 0;
             errorsCurrentWindow = 0;
             windowStart = CurrentWindow;
-
-            ReportMetrics();
         }
 
         public static void RecordRequest(bool isError)
@@ -60,13 +58,6 @@ namespace Whispbot.PRC.PRC
 
             requestsCurrentWindow++;
             if (isError) errorsCurrentWindow++;
-        }
-
-        public static void ReportMetrics()
-        {
-            // Goes to sentry so that we can track the error rate over time
-            SentrySdk.Metrics.EmitCounter("breaker.requests", requestsLastWindow);
-            SentrySdk.Metrics.EmitCounter("breaker.errors", errorsLastWindow);
         }
     }
 }

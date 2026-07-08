@@ -53,5 +53,11 @@ namespace Whispbot.PRC.PRC
 
             return await _client.SendAsync(message);
         }
+
+        public static string GetPath(string endpoint)
+        {
+            var uri = new Uri($"https://api.erlc.gg{endpoint}");
+            return uri.AbsolutePath;
+        }
     }
 }

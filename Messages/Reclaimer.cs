@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Text;
+using Whispbot.PRC.PRC;
 using YellowMacaroni.Redis.Queue;
 
 namespace Whispbot.PRC.Messages
@@ -19,6 +20,7 @@ namespace Whispbot.PRC.Messages
                 new ThreadStart(
                     async () =>
                     {
+                        Logger.Context = Thread.CurrentThread.Name!;
                         Log.Information("Reclaimer started");
 
                         while (!cts.IsCancellationRequested)
@@ -39,9 +41,13 @@ namespace Whispbot.PRC.Messages
                                     await queue.Return(entry, new PRCResponse
                                     {
                                         serverId = message.serverId,
-                                        success = error == PRC.ErrorCode.Nothing,
+                                        success = error == ErrorCode.Nothing,
+                                        error = error,
+                                        error_message = Errors.GetErrorMessage(error),
                                         data = data
                                     });
+
+                                    await queue.AcknowledgeEntry(entry);
                                 }
                             }
 
@@ -53,7 +59,8 @@ namespace Whispbot.PRC.Messages
                 )
             )
             {
-                Name = "Reclaimer"
+                Name = "Reclaimer",
+                IsBackground = true
             };
 
             thread.Start();

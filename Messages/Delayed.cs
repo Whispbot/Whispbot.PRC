@@ -14,6 +14,7 @@ namespace Whispbot.PRC.Messages
                 new ThreadStart(
                     async () =>
                     {
+                        Logger.Context = Thread.CurrentThread.Name!;
                         Log.Information("Delay reclaimer started");
 
                         while (!cts.IsCancellationRequested)
@@ -33,7 +34,8 @@ namespace Whispbot.PRC.Messages
                 )
             )
             {
-                Name = "Delays"
+                Name = "Delays",
+                IsBackground = true
             };
 
             thread.Start();

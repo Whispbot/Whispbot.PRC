@@ -27,7 +27,7 @@ namespace Whispbot.PRC.Messages
 
             try
             {
-                Log.Information($"{logId}: Running {message.method} {message.endpoint} for server {message.serverId}");
+                Log.Debug($"{logId}: Running {message.method} {API.GetPath(message.endpoint)} for server {message.serverId}");
 
                 if (!Breaker.IsOpen)
                 {

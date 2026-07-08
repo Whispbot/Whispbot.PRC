@@ -3,7 +3,9 @@ using Serilog;
 using System;
 using System.Collections.Generic;
 using System.Text;
+using Whispbot.PRC.O11y;
 using Whispbot.PRC.PRC;
+using Whispbot.PRC.Updates;
 using YellowMacaroni.Redis.Queue;
 
 namespace Whispbot.PRC.Messages
@@ -22,12 +24,15 @@ namespace Whispbot.PRC.Messages
                 new ThreadStart(
                     async () =>
                     {
-                        string? machineId = $"{Environment.GetEnvironmentVariable("RAILWAY_REPLICA_ID") ?? "local"}-{threadId}";
+                        Logger.Context = Thread.CurrentThread.Name!;
+
+                        string? replicaId = Environment.GetEnvironmentVariable("RAILWAY_REPLICA_ID");
+                        string machineId = $"{replicaId ?? "local"}-{threadId}";
                         Log.Information($"Starting worker {threadId}");
 
                         var queue = new RedisQueue<PRCRequest>(
                             client,
-                            "prc_api",
+                            $"prc_api{(replicaId is null ? "_dev" : "")}",
                             new QueueOptions
                             {
                                 GroupName = "prc_api_workers",
@@ -48,13 +53,14 @@ namespace Whispbot.PRC.Messages
                         await queue.ListenForMessagesWithCallback(
                             async (entry) =>
                             {
-                                Thread.CurrentThread.Name = $"Worker {threadId}";
-
                                 var message = queue.GetDataFromEntry(entry);
                                 if (message is null) return QueueResponse<PRCResponse>.Retry();
 
                                 var cached = await Cache.GetCache(message);
-                                if (cached is not null) return QueueResponse<PRCResponse>.Success(cached);
+                                if (cached is not null) {
+                                    entry.RecordEnd(message, cached);
+                                    return QueueResponse<PRCResponse>.Success(cached);
+                                }
 
                                 var (error, data, retryAfterMs) = await Handler.OnMessage(queue, entry, message);
 
@@ -70,6 +76,10 @@ namespace Whispbot.PRC.Messages
                                 };
 
                                 await Cache.SetCache(message, response);
+
+                                entry.RecordEnd(message, response);
+
+                                OnRequestFinish.Handle(message, response);
 
                                 return QueueResponse<PRCResponse>.Success(response);
                             },
