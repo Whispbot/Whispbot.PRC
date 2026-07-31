@@ -23,8 +23,9 @@ namespace Whispbot.PRC.O11y
                     new("success", response.success),
                     new("cached", response.cachedAtMs != -1),
                     new("endpoint", API.GetPath(request.endpoint)),
-                    new("environment", Environment.GetEnvironmentVariable("RAILWAY_REPLICA_ID") is not null ? Environment.GetEnvironmentVariable("RAILWAY_ENVIRONMENT_NAME") ?? "production" : "dev"),
-                    new("replica", Environment.GetEnvironmentVariable("RAILWAY_REPLICA_ID") ?? "dev")
+                    new("env", Environment.GetEnvironmentVariable("RAILWAY_REPLICA_ID") is not null ? Environment.GetEnvironmentVariable("RAILWAY_ENVIRONMENT_NAME") ?? "production" : "dev"),
+                    new("replica", Environment.GetEnvironmentVariable("RAILWAY_REPLICA_ID") ?? "dev"),
+                    new("server.id", request.serverId ?? "global")
                 ]
             );
         }
