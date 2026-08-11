@@ -10,10 +10,10 @@ namespace Whispbot.PRC.O11y
 {
     public static class RequestObervability
     {
-        public static void RecordEnd(this StreamEntry entry, PRCRequest request, PRCResponse response)
+        public static async Task RecordEnd(this StreamEntry entry, RedisQueue<PRCRequest> queue, PRCRequest request, PRCResponse response)
         {
-            DateTimeOffset start = entry.GetTimestamp();
-            TimeSpan duration = DateTimeOffset.UtcNow - start;
+            DateTimeOffset end = await queue.GetServerTimeOffsetAsync();
+            TimeSpan duration = end - entry.GetTimestamp();
 
             SentrySdk.Metrics.EmitDistribution(
                 "prc.request.duration",

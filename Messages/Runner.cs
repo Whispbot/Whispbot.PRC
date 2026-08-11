@@ -58,12 +58,11 @@ namespace Whispbot.PRC.Messages
 
                                 var cached = await Cache.GetCache(message);
                                 if (cached is not null) {
-                                    entry.RecordEnd(message, cached);
+                                    await entry.RecordEnd(queue, message, cached);
                                     return QueueResponse<PRCResponse>.Success(cached);
                                 }
 
                                 var (error, data, retryAfterMs) = await Handler.OnMessage(queue, entry, message);
-
                                 if (retryErrors.Contains(error) && entry.GetAttempt() < 3) return QueueResponse<PRCResponse>.Retry(retryAfterMs);
 
                                 var response = new PRCResponse
@@ -78,12 +77,10 @@ namespace Whispbot.PRC.Messages
                                 // This should happen before SetCache because 'cached'
                                 // relies on cachedAtMs which is set by SetCache and messes
                                 // up observability (monitors that use not cached requests)
-                                entry.RecordEnd(message, response);
-
-                                await Cache.SetCache(message, response);
-
+                                await entry.RecordEnd(queue, message, response);
                                 OnRequestFinish.Handle(message, response);
 
+                                await Cache.SetCache(message, response);
                                 return QueueResponse<PRCResponse>.Success(response);
                             },
                             cts.Token
