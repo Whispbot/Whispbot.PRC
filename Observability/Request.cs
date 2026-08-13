@@ -10,10 +10,21 @@ namespace Whispbot.PRC.O11y
 {
     public static class RequestObervability
     {
+        private static List<ErrorCode> _badErrorCodes = [
+            ErrorCode.InternalServerError,
+            ErrorCode.RobloxServerError,
+            ErrorCode.CircuitBreakerOpen,
+            ErrorCode.GlobalKeyInvalid,
+            ErrorCode.NoServerKeyProvided,
+            ErrorCode.ResourceRestricted,
+            ErrorCode.Ratelimited,
+            ErrorCode.ServerKeyMalformed,
+            ErrorCode.Unknown
+        ];
+
         public static async Task RecordEnd(this StreamEntry entry, RedisQueue<PRCRequest> queue, PRCRequest request, PRCResponse response)
         {
-            DateTimeOffset end = await queue.GetServerTimeOffsetAsync();
-            TimeSpan duration = end - entry.GetTimestamp();
+            TimeSpan duration = await entry.GetDurationSinceEnqueueAsync(queue);
 
             SentrySdk.Metrics.EmitDistribution(
                 "prc.request.duration",
@@ -21,6 +32,8 @@ namespace Whispbot.PRC.O11y
                 MeasurementUnit.Duration.Millisecond,
                 [
                     new("success", response.success),
+                    new("error", _badErrorCodes.Contains(response.error)),
+                    new("code", response.error),
                     new("cached", response.cachedAtMs != -1),
                     new("endpoint", API.GetPath(request.endpoint)),
                     new("env", Environment.GetEnvironmentVariable("RAILWAY_REPLICA_ID") is not null ? Environment.GetEnvironmentVariable("RAILWAY_ENVIRONMENT_NAME") ?? "production" : "dev"),
