@@ -12,7 +12,7 @@ namespace Whispbot.PRC.Updates
     {
         private static void InvalidateKeys(string serverId)
         {
-            Postgres.Execute("UPDATE erlc_servers SET api_key = NULL WHERE id = @1", [serverId]);
+            Postgres.Execute("UPDATE erlc_servers SET api_key = NULL WHERE internal_id = @1", [serverId]);
         }
 
         public static readonly Dictionary<ErrorCode, int> InvalidKeyCodes = new()
