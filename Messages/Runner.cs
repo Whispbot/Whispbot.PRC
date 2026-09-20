@@ -56,7 +56,7 @@ namespace Whispbot.PRC.Messages
                                 var message = queue.GetDataFromEntry(entry);
                                 if (message is null) return QueueResponse<PRCResponse>.Retry();
 
-                                var cached = await Cache.GetCache(message);
+                                var cached = replicaId is not null ? await Cache.GetCache(message) : null;
                                 if (cached is not null) {
                                     await entry.RecordEnd(queue, message, cached);
                                     return QueueResponse<PRCResponse>.Success(cached);
@@ -80,7 +80,7 @@ namespace Whispbot.PRC.Messages
                                 await entry.RecordEnd(queue, message, response);
                                 OnRequestFinish.Handle(message, response);
 
-                                await Cache.SetCache(message, response);
+                                if (replicaId is not null) await Cache.SetCache(message, response);
                                 return QueueResponse<PRCResponse>.Success(response);
                             },
                             cts.Token

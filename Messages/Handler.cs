@@ -27,8 +27,6 @@ namespace Whispbot.PRC.Messages
 
             try
             {
-                Log.Debug($"{logId}: Running {message.method} {API.GetPath(message.endpoint)} for server {message.serverId}");
-
                 if (!Breaker.IsOpen)
                 {
                     Log.Warning($"{logId}: Circuit breaker is open");
@@ -48,6 +46,7 @@ namespace Whispbot.PRC.Messages
                     return (ErrorCode.Ratelimited, null, retryAfterMs);
                 }
 
+                Log.Debug($"{logId}: Running {message.method} {API.GetPath(message.endpoint)} for server {message.serverId}");
                 var response = await API.Request(message);
 
                 var (requestBucket, limit, remainingAfter, resetAtMs) = Ratelimiting.GetRatelimitsFromRequest(response);
@@ -81,7 +80,7 @@ namespace Whispbot.PRC.Messages
 
                     Breaker.RecordRequest(activateBreakerCodes.Contains(error.code) || (int)response.StatusCode >= 500);
 
-                    Log.Error($"{logId}: Request failed: {error.code} {error.message}");
+                    Log.Error($"{logId}: Request failed: {error.code} {error.message}, {remainingAfter}/{limit} for {Math.Round((double)(resetAtMs - DateTimeOffset.UtcNow.ToUnixTimeMilliseconds()) / 1000, 1)}s");
 
                     return (error.code, new
                     {

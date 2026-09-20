@@ -7,6 +7,7 @@ using Whispbot.PRC.Databases;
 using Whispbot.PRC.Messages;
 using Whispbot.PRC.PRC;
 using Whispbot.PRC.Updates;
+using Whispbot.PRC.Updates.Automod;
 using YellowMacaroni.Redis.Queue;
 
 Logger.Context = "Main";
@@ -44,6 +45,9 @@ void OnExit(string reason = "")
 PosixSignalRegistration.Create(PosixSignal.SIGINT, (_) => { OnExit("SIGINT"); });
 PosixSignalRegistration.Create(PosixSignal.SIGTERM, (_) => { OnExit("SIGTERM"); });
 AppDomain.CurrentDomain.ProcessExit += (_,_) => { OnExit("SIGTERM"); };
+
+Actions.Init(client);
+await Whitelist.Init();
 
 string? workersEnv = Environment.GetEnvironmentVariable("WORKERS");
 int workers = workersEnv is not null && int.TryParse(workersEnv, out int w) ? w : 5;

@@ -3,6 +3,7 @@ using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
 using System.Text;
+using Whispbot.PRC.Databases;
 using Whispbot.PRC.PRC;
 using Whispbot.PRC.PRC.Classes;
 
@@ -29,6 +30,16 @@ namespace Whispbot.PRC.Messages
             }
         }
         public string? FullAPIKey => DecryptedAPIKey is not null && serverId is not null ? $"{DecryptedAPIKey}-{serverId}" : null;
+
+        private ulong? _discordServerId;
+        public ulong DiscordServerId => 
+            _discordServerId ??= Postgres.SelectFirst<GetGuildId>(
+                "SELECT guild_id FROM erlc_servers WHERE internal_id = @1",
+                [serverId ?? throw new ArgumentNullException(nameof(serverId))]
+            )?.guild_id 
+            ?? throw new InvalidOperationException("Failed to fetch guild id");
+
+        private class GetGuildId { public ulong guild_id; }
     }
 
     public class PRCResponse

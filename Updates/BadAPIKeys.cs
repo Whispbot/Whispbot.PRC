@@ -20,7 +20,7 @@ namespace Whispbot.PRC.Updates
             { ErrorCode.ServerKeyMalformed, 50 }, // Malformed key, allow retry incase of a temporary issue
             { ErrorCode.ServerKeyInvalid, 50 }, // Reset key?? Allow retry incase of a temporary issue
             { ErrorCode.ServerKeyBanned, 100 }, // Nope
-            { ErrorCode.NotAuthorized, 10 }, // Stop sending commands and authorize the app bruh
+            { ErrorCode.NotAuthorized, 30 }, // Stop sending commands and authorize the app bruh
             { ErrorCode.MessageProhibited, 40 } // Said bad bad thing, 3 strikes and ur out
         };
 

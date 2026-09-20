@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
+using Whispbot.PRC.Databases;
 
 namespace Whispbot.PRC.PRC.Classes
 {
@@ -12,6 +13,30 @@ namespace Whispbot.PRC.PRC.Classes
         public string Permission { get; init; } = default!;
         public float WantedStars { get; init; } = default!;
         public ERLCPlayerLocation Location { get; init; } = default!;
+
+
+        private ulong? _discordId;
+        public ulong DiscordId
+        {
+            get
+            {
+                if (_discordId is not null) return _discordId.Value;
+
+                var parts = Player.Split(":");
+                var robloxIdStr = parts.Length > 1 ? parts[1] : null;
+                if (!ulong.TryParse(robloxIdStr, out var id)) throw new InvalidOperationException("Failed to parse Roblox ID");
+
+                var userConfig = Postgres.SelectFirst<GetUserId>("SELECT id FROM user_config WHERE roblox_id = @1;", [id])
+                    ?? throw new InvalidOperationException("Failed to find user config");
+
+                _discordId = userConfig.id;
+                return _discordId.Value;
+            }
+        }
+        private class GetUserId
+        {
+            public ulong id;
+        }
     }
 
     public class ERLCPlayerLocation

@@ -477,11 +477,21 @@ namespace Whispbot.PRC.Databases
             foreach (var property in properties)
             {
                 propertyMap[property.Name] = property;
+                var columnName = property.GetCustomAttribute<JsonPropertyAttribute>()?.PropertyName;
+                if (!string.IsNullOrEmpty(columnName))
+                {
+                    propertyMap[columnName] = property;
+                }
             }
 
             foreach (var field in fields)
             {
                 fieldMap[field.Name] = field;
+                var columnName = field.GetCustomAttribute<JsonPropertyAttribute>()?.PropertyName;
+                if (!string.IsNullOrEmpty(columnName))
+                {
+                    fieldMap[columnName] = field;
+                }
             }
 
             return (propertyMap, fieldMap);

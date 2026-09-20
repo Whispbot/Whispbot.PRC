@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 using Whispbot.PRC.PRC;
+using Whispbot.PRC.Updates.Automod;
 using YellowMacaroni.Redis.Queue;
 
 namespace Whispbot.PRC.Messages
@@ -52,6 +53,12 @@ namespace Whispbot.PRC.Messages
                             }
 
                             await Task.Delay(10_000, cts.Token).ContinueWith(_ => { });
+
+                            // Clean the whitelist cache every 10 minutes
+                            // instead of spinning up a new thread for it
+                            // we can just do it hear instead with minimal
+                            // impact on the running program
+                            Whitelist.CleanCache();
                         }
 
                         Log.Warning("Reclaimer finished");
