@@ -49,7 +49,7 @@ namespace Whispbot.PRC.Messages
                 Log.Debug($"{logId}: Running {message.method} {API.GetPath(message.endpoint)} for server {message.serverId}");
                 var response = await API.Request(message);
 
-                var (requestBucket, limit, remainingAfter, resetAtMs) = Ratelimiting.GetRatelimitsFromRequest(response);
+                var (requestBucket, limit, remainingAfter, resetAtMs) = Ratelimiting.GetRatelimitsFromRequest(message, response);
 
                 if (requestBucket != bucket)
                 {

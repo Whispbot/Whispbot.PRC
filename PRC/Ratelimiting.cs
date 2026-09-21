@@ -71,14 +71,21 @@ namespace Whispbot.PRC.PRC
             );
         }
 
-        public static (string bucket, int limit, int remaining, long resetAtMs) GetRatelimitsFromRequest(HttpResponseMessage message)
+        public static (string bucket, int limit, int remaining, long resetAtMs) GetRatelimitsFromRequest(PRCRequest request, HttpResponseMessage message)
         {
-            string bucket = message.Headers.Contains("X-RateLimit-Bucket") ? message.Headers.GetValues("X-RateLimit-Bucket").FirstOrDefault() ?? GlobalBucketName : GlobalBucketName;
-            int limit = int.Parse(message.Headers.GetValues("X-RateLimit-Limit").FirstOrDefault() ?? "0");
-            int remaining = int.Parse(message.Headers.GetValues("X-RateLimit-Remaining").FirstOrDefault() ?? "0");
-            long resetAtMs = long.Parse(message.Headers.GetValues("X-RateLimit-Reset").FirstOrDefault() ?? "0") * 1000;
+            try
+            {
+                string bucket = message.Headers.Contains("X-RateLimit-Bucket") ? message.Headers.GetValues("X-RateLimit-Bucket").FirstOrDefault() ?? GlobalBucketName : GlobalBucketName;
+                int limit = int.Parse(message.Headers.GetValues("X-RateLimit-Limit").FirstOrDefault() ?? "0");
+                int remaining = int.Parse(message.Headers.GetValues("X-RateLimit-Remaining").FirstOrDefault() ?? "0");
+                long resetAtMs = long.Parse(message.Headers.GetValues("X-RateLimit-Reset").FirstOrDefault() ?? "0") * 1000;
 
-            return (bucket, limit, remaining, resetAtMs);
+                return (bucket, limit, remaining, resetAtMs);
+            }
+            catch
+            {
+                return (GetBucketFromRequest(request, request.apiKey), 0, 0, 0);
+            }
         }
     }
 }
