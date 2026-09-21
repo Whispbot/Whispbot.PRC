@@ -31,7 +31,7 @@ namespace Whispbot.PRC.PRC
                 }
                 else
                 {
-                    localCache.Remove(key);
+                    lock (localCache) localCache.Remove(key);
                 }
             }
 
@@ -41,7 +41,10 @@ namespace Whispbot.PRC.PRC
             var cachedValue = await redis.StringGetAsync(key);
             var cachedResponse = cachedValue.HasValue ? JsonConvert.DeserializeObject<PRCResponse>(cachedValue.ToString()) : null;
 
-            if (cachedResponse is not null) localCache.Add(key, (DateTimeOffset.FromUnixTimeMilliseconds(cachedResponse.cachedAtMs).AddSeconds(GetCacheDuration(cachedResponse)), cachedResponse));
+            if (cachedResponse is not null) 
+            {
+                lock (localCache) localCache.Add(key, (DateTimeOffset.FromUnixTimeMilliseconds(cachedResponse.cachedAtMs).AddSeconds(GetCacheDuration(cachedResponse)), cachedResponse));
+            }
 
             return cachedResponse;
         }
@@ -60,8 +63,11 @@ namespace Whispbot.PRC.PRC
             response.cachedAtMs = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
 
             await redis.StringSetAsync(key, JsonConvert.SerializeObject(response), TimeSpan.FromSeconds(cacheDuration));
-            localCache.Remove(key);
-            localCache.Add(key, (expires, response));
+            lock (localCache)
+            {
+                localCache.Remove(key);
+                localCache.Add(key, (expires, response));
+            }
         }
     }
 }
