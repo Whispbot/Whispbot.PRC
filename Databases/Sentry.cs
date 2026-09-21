@@ -3,6 +3,7 @@ using Serilog;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -10,8 +11,10 @@ namespace Whispbot.PRC.Databases
 {
     public static class SentryConnection
     {
-        private static readonly string _replica = Environment.GetEnvironmentVariable("RAILWAY_REPLICA_ID") ?? "dev";
-        private static readonly string _release = Environment.GetEnvironmentVariable("RAILWAY_DEPLOYMENT_ID") ?? $"dev-{Random.Shared.Next(1_000_000, 9_999_999)}";
+        private static readonly string? _replica = Environment.GetEnvironmentVariable("RAILWAY_REPLICA_ID");
+        private static readonly string _releaseId =
+            Environment.GetEnvironmentVariable("RAILWAY_DEPLOYMENT_ID")?.Split("-")[0] 
+            ?? $"dev{Random.Shared.Next(65_536, 1_048_575):X5}";
 
         public static void Init()
         {
@@ -35,12 +38,12 @@ namespace Whispbot.PRC.Databases
 
                     options.SetBeforeSendMetric(static metric =>
                     {
-                        metric.SetAttribute("replica", _replica);
+                        if (_replica is not null) metric.SetAttribute("replica", _replica);
 
                         return metric;
                     });
 
-                    options.Release = _release;
+                    options.Release = $"whispbot.prc@{Assembly.GetEntryAssembly()?.GetName().Version}+{_releaseId}";
                     options.Environment = _replica is not null ? "production" : "development";
                 });
                 Log.Information("Initialized sentry");
