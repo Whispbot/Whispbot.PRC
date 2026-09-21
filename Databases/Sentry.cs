@@ -11,6 +11,7 @@ namespace Whispbot.PRC.Databases
     public static class SentryConnection
     {
         private static readonly string _replica = Environment.GetEnvironmentVariable("RAILWAY_REPLICA_ID") ?? "dev";
+        private static readonly string _release = Environment.GetEnvironmentVariable("RAILWAY_DEPLOYMENT_ID") ?? $"dev-{Random.Shared.Next(1_000_000, 9_999_999)}";
 
         public static void Init()
         {
@@ -38,6 +39,9 @@ namespace Whispbot.PRC.Databases
 
                         return metric;
                     });
+
+                    options.Release = _release;
+                    options.Environment = _replica is not null ? "production" : "development";
                 });
                 Log.Information("Initialized sentry");
             }
