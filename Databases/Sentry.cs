@@ -10,7 +10,7 @@ namespace Whispbot.PRC.Databases
 {
     public static class SentryConnection
     {
-        private static readonly string replica = Environment.GetEnvironmentVariable("RAILWAY_REPLICA_ID") ?? "dev";
+        private static readonly string _replica = Environment.GetEnvironmentVariable("RAILWAY_REPLICA_ID") ?? "dev";
 
         public static void Init()
         {
@@ -34,7 +34,7 @@ namespace Whispbot.PRC.Databases
 
                     options.SetBeforeSendMetric(static metric =>
                     {
-                        metric.SetAttribute("replica", replica);
+                        metric.SetAttribute("replica", _replica);
 
                         return metric;
                     });

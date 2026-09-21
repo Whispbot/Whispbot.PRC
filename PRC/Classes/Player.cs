@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Newtonsoft.Json;
+using System;
 using System.Collections.Generic;
 using System.Text;
 using Whispbot.PRC.Databases;
@@ -16,6 +17,7 @@ namespace Whispbot.PRC.PRC.Classes
 
 
         private ulong? _discordId;
+        [JsonIgnore]
         public ulong DiscordId
         {
             get

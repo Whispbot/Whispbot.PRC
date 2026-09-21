@@ -18,6 +18,7 @@ namespace Whispbot.PRC.Messages
         public object? body = null;
 
         private string? _decryptedApiKey = null;
+        [JsonIgnore]
         public string? DecryptedAPIKey
         {
             get
@@ -29,9 +30,11 @@ namespace Whispbot.PRC.Messages
                 return _decryptedApiKey;
             }
         }
+        [JsonIgnore]
         public string? FullAPIKey => DecryptedAPIKey is not null && serverId is not null ? $"{DecryptedAPIKey}-{serverId}" : null;
 
         private ulong? _discordServerId;
+        [JsonIgnore]
         public ulong DiscordServerId => 
             _discordServerId ??= Postgres.SelectFirst<GetGuildId>(
                 "SELECT guild_id FROM erlc_servers WHERE internal_id = @1",
@@ -51,6 +54,7 @@ namespace Whispbot.PRC.Messages
         public string? error_message = "Something went wrong...";
         public object? data = null!;
 
+        [JsonIgnore]
         public ERLCServer? Server => ConvertResponseTo<ERLCServer>(this);
 
         public static T? ConvertResponseTo<T>(PRCResponse response) where T : class
